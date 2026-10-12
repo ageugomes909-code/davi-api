@@ -1,0 +1,13 @@
+{
+  "name": "davi-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API Node.js/Express básica para implantação no Northflank",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
