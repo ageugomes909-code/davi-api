@@ -21,7 +21,6 @@ const FIREBASE_DB_URL = "https://loja-do-dag-default-rtdb.firebaseio.com";
 const sessionKeys   = new Map();
 const sessionTokens = new Map();
 const keyCache      = new Map();
-const CACHE_TTL     = 1000;
 
 function getClientIp(req) {
   let ip = req.headers['cf-connecting-ip'] ||
@@ -138,27 +137,21 @@ async function notifyDiscordLogin(req, key, clientIp, gpsData) {
     const geo = await getGeoInfo(clientIp);
     const ua = req.headers['user-agent'] || 'Desconhecido';
     const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Manaus' });
-    let mapsLinkIp = 'Não disponível', localStr = 'Não disponível', coordsStr = 'Não disponível';
-    let ispStr = 'Não disponível', proxyStr = 'Não disponível', mobileStr = 'Não disponível', timezoneStr = 'Não disponível';
+    let mapsLinkIp = 'Não disponível', localStr = 'Não disponível';
     if (geo && geo.status === 'success') {
       mapsLinkIp = `https://www.google.com/maps?q=${geo.lat},${geo.lon}`;
-      localStr = `${geo.city \vert{}\vert{} '-'} /${geo.regionName || '-'} / ${geo.country \vert{}\vert{} '-'} (${geo.countryCode || '-'})`;
-      coordsStr = `${geo.lat},${geo.lon}`;
-      ispStr = geo.isp || geo.org || '-';
-      proxyStr = geo.proxy ? 'Sim ⚠️' : 'Não';
-      mobileStr = geo.mobile ? 'Sim' : 'Não';
-      timezoneStr = geo.timezone || '-';
+      const cityName = geo.city || '-';
+      const regName = geo.regionName || '-';
+      const countryName = geo.country || '-';
+      const countryCode = geo.countryCode || '-';
+      localStr = `${cityName} /${regName} / ${countryName} (${countryCode})`;
     }
     const fields = [
       { name: "🔑 Key Utilizada", value: `\`${key}\``, inline: false },
       { name: "🌐 IP", value: `\`${clientIp}\``, inline: true },
-      { name: "🕒 Data/Hora", value: `\`${dataHora}\``, inline: true }
+      { name: "🕒 Data/Hora", value: `\`${dataHora}\``, inline: true },
+      { name: "📍 Localização IP", value: localStr, inline: false }
     ];
-    if (gpsData && gpsData.lat && gpsData.lon) {
-      const gpsMapsLink = `https://www.google.com/maps?q=${gpsData.lat},${gpsData.lon}`;
-      const precisao = gpsData.accuracy ? `${Math.round(gpsData.accuracy)}m` : 'N/A';
-      fields.push({ name: "🎯 LOCALIZAÇÃO EXATA (GPS)", value: `[📍 Abrir no Google Maps](${gpsMapsLink})\n**Coordenadas:** \`${gpsData.lat},${gpsData.lon}\`\n**Precisão:** ${precisao}`, inline: false });
-    }
     const embed = {
       username: "SECURE PANEL • LOGS",
       embeds: [{ title: "🔓 NOVO LOGIN AUTORIZADO", color: 0x22c55e, fields, timestamp: new Date().toISOString() }]
