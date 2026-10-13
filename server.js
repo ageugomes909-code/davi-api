@@ -1,5 +1,3 @@
-cd /var/www/minha-api
-cat << 'EOF' > server.js
 const express = require('express');
 const https = require('https');
 const http = require('http');
@@ -196,8 +194,8 @@ async function notifyDiscordLogin(req, key, clientIp, gpsData) {
     let ispStr = 'Não disponível', proxyStr = 'Não disponível', mobileStr = 'Não disponível', timezoneStr = 'Não disponível';
     if (geo && geo.status === 'success') {
       mapsLinkIp = `https://www.google.com/maps?q=${geo.lat},${geo.lon}`;
-      localStr = `${geo.city || '-'} / ${geo.regionName || '-'} / ${geo.country || '-'} (${geo.countryCode || '-'})`;
-      coordsStr = `${geo.lat}, ${geo.lon}`;
+      localStr = `${geo.city \vert{}\vert{} '-'} /${geo.regionName || '-'} / ${geo.country \vert{}\vert{} '-'} (${geo.countryCode || '-'})`;
+      coordsStr = `${geo.lat},${geo.lon}`;
       ispStr = geo.isp || geo.org || '-';
       proxyStr = geo.proxy ? 'Sim ⚠️' : 'Não';
       mobileStr = geo.mobile ? 'Sim' : 'Não';
@@ -893,7 +891,6 @@ const loginScript = `
 // ============ ROTAS ==========================================
 // ============================================================
 
-// Checagem de status (usada opcionalmente por clientes externos)
 app.get('/check-status', async (req, res) => {
   const clientIp = getClientIp(req);
   const sess = getSession(req);
@@ -904,9 +901,6 @@ app.get('/check-status', async (req, res) => {
   return res.json({ active: false, reason: check.status });
 });
 
-// ============================================================
-// ============ SITE CLIENTE (ROTA PRINCIPAL) =================
-// ============================================================
 app.get('/', async (req, res) => {
   const clientIp = getClientIp(req);
   const sess = getSession(req);
@@ -1034,9 +1028,6 @@ app.get('/', async (req, res) => {
   }
 });
 
-// ============================================================
-// ====================== LOGOUT ==============================
-// ============================================================
 app.post('/logout', (req, res) => {
   const clientIp = getClientIp(req);
   destroySession(req);
@@ -1044,9 +1035,6 @@ app.post('/logout', (req, res) => {
   res.redirect('/?erro=logged_out');
 });
 
-// ============================================================
-// ====================== LOGIN ===============================
-// ============================================================
 app.post('/login', async (req, res) => {
   const { key, gpsLat, gpsLon, gpsAcc } = req.body;
   const clientIp = getClientIp(req);
@@ -1079,9 +1067,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// ============================================================
-// ============= ROTAS DE DEBUG (opcional) ====================
-// ============================================================
 app.get('/debug/key/:key', async (req, res) => {
   const k = String(req.params.key).trim().toUpperCase();
   const data = await firebaseGet(`/proxyAndroid/keys/${k}`);
@@ -1089,12 +1074,8 @@ app.get('/debug/key/:key', async (req, res) => {
   res.json({ key: k, raw: data, computed: real, now: Date.now(), nowDate: new Date().toISOString() });
 });
 
-// ============================================================
-// ====================== LISTEN ==============================
-// ============================================================
-app.listen(3000, "0.0.0.0", () => {
-  console.log("Servidor rodando na porta 3000!");
+// Porta dinâmica obrigatória para o Render funcionar
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Servidor rodando na porta ${PORT}!`);
 });
-EOF
-pm2 restart minha-api || pm2 start server.js --name minha-api
-pm2 saves
